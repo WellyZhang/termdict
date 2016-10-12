@@ -64,7 +64,8 @@ class MWDict(BaseDict):
                 h2 = inner_box.find("div", {"class": "word-sub-header"})
                 h2 = h2.text.strip()
                 if h2.startswith("Definition") or \
-                    h2.startswith("Full Definition"):
+                    h2.startswith("Full Definition") or \
+                    h2.startswith("Medical Definition"):
                     mode = "def"
                 elif h2.startswith("Simple Definition"):
                     mode = "sdef"
@@ -75,7 +76,8 @@ class MWDict(BaseDict):
                 elif h2.endswith("Synonyms"):
                     mode = "syno"
                 elif h2.startswith("Definition") or \
-                    h2.startswith("Full Definition"):
+                    h2.startswith("Full Definition") or \
+                    h2.startswith("Medical Definition"):
                     mode = "def"
                     
             return has_wd, mode
@@ -83,10 +85,11 @@ class MWDict(BaseDict):
         
         def header_handler(content, main=False):
         
+            spell = content.find("div", {"class": "word-header"})
             if main:
-                spell = header.h1.text.strip()
+                spell = spell.h1.text.strip()
             else:
-                spell = header.h2.text.strip()
+                spell = spell.h2.text.strip()
                 
             attrs = content.find("div", {"class": "word-attributes"})
             attrs = " ".join(attrs.text.split())
@@ -99,7 +102,7 @@ class MWDict(BaseDict):
             if has_wd:
                 header = header_handler(content, main)
                 print header
-                print "..."          
+                print "-------"          
             
             if mode == "def":
             
@@ -109,9 +112,7 @@ class MWDict(BaseDict):
                     inflections = ""
                     for child in children:
                         inflections += child.text + " "
-                    print inflections
-                    print "..."
-                
+                    print inflections                
                 
                 content = content.find("div", {"class": 
                             "card-primary-content"})
@@ -119,30 +120,48 @@ class MWDict(BaseDict):
                 lists = content.findAll("li")
                 
                 for l in lists:
+                    for child in l.children:
+                        print child.text.strip()
+                    '''
                     if l.has_attr("class"):
                         verb = l.text.strip()
                         print verb
                     else:
                         definitions = ""
                         if l is not None:
-                            for df in l:
+                            for df in l.children:
                                 raw = " ".join(df.text.split()) + "\n"
-                                spt = re.split(" [a-z] :", raw)
+                                spt = re.split("[a-z] : ", raw)
                                 def_idx = spt[0]
                                 for i in range(1, len(spt)):
-                                    def_idx += " " + chr(i + 96) + " : " + spt[i] + "\n "
+                                    def_idx += "\n " + chr(i + 96) + " : " + spt[i]
                                 if len(spt) > 1:
                                     definitions += def_idx[:-2]
                                 else:
                                     definitions += def_idx
                             print definitions
-                                
-            elif mode == "sdef":
+                    '''                 
+            elif mode == "sdef":                
                 defs = content.find("div", {"class": "definition-block def-text"})
                 defs = " ".join(defs.text.split())
                 defs = "\n:".join(defs.split(":"))[1:]
                 print defs
-      
+            
+            elif mode == "eg":
+                sentences = content.find("li")
+                print "======"
+                for sentence in sentences:
+                    print sentence.text.strip()
+             
+            elif mode == "syno":
+                synos = content.find("div", {"class": "card-primary-content"})
+                synos = synos.div
+                print "******"
+                for syno in synos:
+                    if syno.name == "h6" or syno.name == "a":
+                        print syno.text.strip()
+                
+            
         contents = soup.findAll("div", {"class": "inner-box-wrapper"})
                 
         header = contents[0]  
