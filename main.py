@@ -20,13 +20,13 @@ def main(args):
     dicts = []
     args = remove_dups(args)
     for arg in args:
-        if arg.lower() == "MW":
+        if arg.lower() == "mw":
             dicts.append(MWDict())
         else:
             print "No such dictionary."
             print "Dictionary(s) available: MW(Merriam-Webster)."
             print "Please try again"
-            exit()
+            sys.exit()
     
     while True:
         try:
@@ -35,7 +35,7 @@ def main(args):
             [d.pprint(tl) for d in dicts]              
         except KeyboardInterrupt:
             print "Program Exit"
-            exit()
+            sys.exit()
                   
 if __name__ == "__main__":
     
