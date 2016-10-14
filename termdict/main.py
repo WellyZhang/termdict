@@ -34,6 +34,7 @@ def main(args):
             tl = [d.translate(word.strip()) for d in dicts]
             [d.pprint(tl) for d in dicts]              
         except KeyboardInterrupt:
+            [d.close() for d in dicts]
             print "Program Exit"
             sys.exit()
                   
