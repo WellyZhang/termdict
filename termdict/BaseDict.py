@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 import os
 import requests
 import sqlite3
+from bs4 import BeautifulSoup
 
 class BaseDict(object):
     
     def __init__(self, url, dbname):
     
         self.url = url
-        if os.path.exists("~/.termdict/termdict_{}.db".format(name)):
-            self.db = sqlite3.connect("~/.termdict/termdict_?.db", (name, ))
+        homepath = os.path.expanduser("~")
+        dirpath = os.path.join(homepath, ".termdict")
+        dbpath = os.path.join(dirpath, "termdict_{}.db".format(dbname))
+        if os.path.exists(dbpath):
+            self.db = sqlite3.connect(dbpath)
             
         else:
-            os.path.mkdir("~/.termdict")
-            self.db = sqlite3.connect("~/.termdict/termdict_?.db", (name, ))
+            os.mkdir(dirpath)
+            self.db = sqlite3.connect(dbpath)
             SQL = "CREATE TABLE dict" + \
                   "(word TEXT PRIMARY KEY NOT NULL, " + \
                   "content TEXT NOT NULL);"
@@ -30,9 +33,11 @@ class BaseDict(object):
         content = self.dbc.fetchone()
         if content is None:
             soup = self.get_web(word)
-            content = self.parse_web(soup)
-            self.dbc.execute("INSERT INTO dict VALUES (?, ?)", (word, content))
-        pprint(content)
+            is_err, content = self.parse_web(soup)
+            if not is_err:
+                self.dbc.execute("INSERT INTO dict VALUES (?, ?)", 
+                                 (word, content))
+        self.pprint(content)
         
     def get_web(self, word):
         
@@ -42,13 +47,13 @@ class BaseDict(object):
     
     def parse_web(self, resp):
         
-        # defined in the subclasses         
-        return None
+        # elaborated in the subclasses         
+        pass
         
-    def pprint(self, structure):
+    def pprint(self, spell, structure):
         
-        # defined in the subclasses
-        return None
+        # elaborated in the subclasses
+        pass
     
     def close(self):
         

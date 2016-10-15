@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+
 import sys
-from models import MWDict  
+from MWDict import MWDict  
 
 
 def remove_dups(arg_list):
@@ -31,8 +32,7 @@ def main(args):
     while True:
         try:
             word = raw_input()
-            tl = [d.translate(word.strip()) for d in dicts]
-            [d.pprint(tl) for d in dicts]              
+            [d.translate(word.strip()) for d in dicts]
         except KeyboardInterrupt:
             [d.close() for d in dicts]
             print "Program Exit"

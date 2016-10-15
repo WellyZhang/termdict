@@ -3,10 +3,6 @@
 
 import json
 import re
-import requests
-import sqlite3
-from bs4 import BeautifulSoup
-
 from BaseDict import BaseDict
 
 class MWDict(BaseDict):
@@ -29,36 +25,29 @@ class MWDict(BaseDict):
         def mode_checker(inner_box):
             
             msg = inner_box.find("div", {"class": "card-primary-content"})
-            msg = msg.text.strip()
             has_wd = None
             mode = None
-            if msg.startswith("The word you"):
+            if (msg is not None 
+                and msg.text.strip().startswith("The word you've")):
                 mode = "err"
             else:            
                 has_wd = has_word_header(inner_box)
-                mode = None
                 if has_wd:
                     h2 = inner_box.find("div", {"class": "word-sub-header"})
                     h2 = h2.text.strip()
-                    if h2.startswith("Definition") or \
-                        h2.startswith("Full Definition") or \
-                        h2.startswith("Medical Definition"):
-                        mode = "def"
-                    elif h2.startswith("Simple Definition"):
-                        mode = "sdef"
                 else:
                     h2 = inner_box.h2.text.strip()
-                    if h2.startswith("Examples"):
-                        mode = "eg"
-                    elif h2.endswith("Synonyms"):
-                        mode = "syno"
-                    elif h2.startswith("Definition") or \
-                        h2.startswith("Full Definition") or \
-                        h2.startswith("Medical Definition"):
-                        mode = "def"
+                    
+                if h2.startswith("Definition") or \
+                    h2.startswith("Full Definition") or \
+                    h2.startswith("Medical Definition"):
+                    mode = "def"
+                elif h2.startswith("Simple Definition"):
+                    mode = "sdef"
+                elif h2.startswith("Examples"):
+                    mode = "eg"
                         
             return has_wd, mode
-        
         
         def header_handler(content, main=False):
         
@@ -72,20 +61,22 @@ class MWDict(BaseDict):
             attrs = " ".join(attrs.text.split())
                         
             return spell, attrs
-        
-        
-        def content_handler(content, has_wd, mode, main=False):
+         
+        def content_handler(content, has_wd, mode, ret, main=False):
             
             if mode == "err":
                 suggests = content.findAll("a")
+                sug_list = []
                 for suggest in suggests:
-                    print suggest.text.strip()
+                     sug_list.append(suggest.text.strip())
+                ret.append(("suggests", sug_list))
+                
             else: 
                 if has_wd:
                     header = header_handler(content, main)
-                    print header
-                    print "-------"          
-                
+                    ret.append(("spelling", header[0]))
+                    ret.append(("attrs", header[1]))
+                    
                 if mode == "def":
                 
                     inflections = content.find("span", {"class": "inflections"})
@@ -94,7 +85,7 @@ class MWDict(BaseDict):
                         inflections = ""
                         for child in children:
                             inflections += child.text + " "
-                        print inflections                
+                        ret.append(("inflections", inflections))                
                     
                     content = content.find("div", {"class": 
                                 "card-primary-content"})
@@ -102,9 +93,47 @@ class MWDict(BaseDict):
                     lists = content.findAll("li")
                     
                     for l in lists:
+                        def_list = []
                         for child in l.children:
-                            print child.text.strip()
-                        '''
+                            def_list.append(child.text.strip())
+                        ret.append(("def_list", def_list))
+                                     
+                elif mode == "sdef":                
+                    sdefs = content.find("div", 
+                              {"class": "definition-block def-text"})
+                    sdefs = " ".join(sdefs.text.split())
+                    sdefs = "\n:".join(sdefs.split(":"))[1:]
+                    ret.append(("sdefs", sdefs))
+                 
+                elif mode == "eg":
+                    sentences = content.find("li")
+                    eg_list = []
+                    for sentence in sentences:
+                        eg_list.append(sentence.text.strip())
+                    ret.append(("egs", eg_list))
+        
+        is_err = False
+        ret = []
+        
+        contents = soup.findAll("div", {"class": "inner-box-wrapper"})
+                
+        header = contents[0]        
+        has_wd, mode = mode_checker(header)
+        if mode == "err":
+            is_err = True
+        content_handler(header, has_wd, mode, ret, True)
+        
+        for content in contents[1:]:
+            has_wd, mode = mode_checker(content)
+            content_handler(content, has_wd, mode, ret)
+
+        return is_err, json.dumps(ret)
+        
+    def pprint(self, translation):
+        
+        print "==="
+        print translation
+'''
                         if l.has_attr("class"):
                             verb = l.text.strip()
                             print verb
@@ -122,42 +151,6 @@ class MWDict(BaseDict):
                                     else:
                                         definitions += def_idx
                                 print definitions
-                        '''                 
-                elif mode == "sdef":                
-                    defs = content.find("div", 
-                              {"class": "definition-block def-text"})
-                    defs = " ".join(defs.text.split())
-                    defs = "\n:".join(defs.split(":"))[1:]
-                    print defs
-                
-                elif mode == "eg":
-                    sentences = content.find("li")
-                    print "======"
-                    for sentence in sentences:
-                        print sentence.text.strip()
-                 
-                elif mode == "syno":
-                    synos = content.find("div", 
-                               {"class": "card-primary-content"})
-                    synos = synos.div
-                    print "******"
-                    for syno in synos:
-                        if syno.name == "h6" or syno.name == "a":
-                            print syno.text.strip()
+                        '''   
 
-        contents = soup.findAll("div", {"class": "inner-box-wrapper"})
-                
-        header = contents[0]        
-        has_wd, mode = mode_checker(header)
-        ret_header = content_handler(header, has_wd, mode, True)
-        
-        for content in contents[1:]:
-            has_wd, mode = mode_checker(content)
-            ret_child = content_handler(content, has_wd, mode)
-         
-        
-        return ""
-        
-    def pprint(self, translation):
     
-        return None     
