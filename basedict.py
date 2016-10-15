@@ -7,7 +7,7 @@ import os
 import requests
 import sqlite3
 from bs4 import BeautifulSoup
-from TermColors import TermColors
+from termcolors import TermColors
 
 
 class BaseDict(object):

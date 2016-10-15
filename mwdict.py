@@ -3,7 +3,7 @@
 
 import json
 import re
-from BaseDict import BaseDict
+from basedict import BaseDict
 
 class MWDict(BaseDict):
     
@@ -27,9 +27,12 @@ class MWDict(BaseDict):
             msg = inner_box.find("div", {"class": "card-primary-content"})
             has_wd = None
             mode = None
-            if (msg is not None 
-                and msg.text.strip().startswith("The word you've")):
-                mode = "err"
+            if (msg is not None and 
+                msg.text.strip().startswith("The word you've")):
+                    mode = "err_sug"
+            elif (msg is not None and 
+                msg.text.strip().startswith("Words fail us")):
+                    mode = "err_fail"
             else:            
                 has_wd = has_word_header(inner_box)
                 if has_wd:
@@ -64,12 +67,14 @@ class MWDict(BaseDict):
          
         def content_handler(content, has_wd, mode, ret, main=False):
             
-            if mode == "err":
+            if mode == "err_sug":
                 suggests = content.findAll("a")
                 sug_list = []
                 for suggest in suggests:
                      sug_list.append(suggest.text.strip())
                 ret.append(("suggests", sug_list))
+            elif mode == "err_fail":
+                ret.append(("fail", "Words fail us. Try again."))
                 
             else: 
                 if has_wd:
@@ -122,7 +127,7 @@ class MWDict(BaseDict):
                 
         header = contents[0]        
         has_wd, mode = mode_checker(header)
-        if mode == "err":
+        if mode.startswith("err_"):
             is_err = True
         content_handler(header, has_wd, mode, ret, True)
         
@@ -141,6 +146,8 @@ class MWDict(BaseDict):
                 print self.tc.colorize("Did you mean:", "blue")
                 for suggest in component[1]:
                     print "  " + suggest
+            if component[0] == "fail":
+                print self.tc.colorize(component[1], "red", "bold")
             if component[0] == "spelling":
                 print "\n  ",
                 print self.tc.colorize(component[1], "bold", "red")

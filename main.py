@@ -4,8 +4,8 @@
 import os
 import sys
 import config
-from MWDict import MWDict
-from TermColors import TermColors
+from mwdict import MWDict
+from termcolors import TermColors
 
 def remove_dups(arg_list):
     
