@@ -21,4 +21,4 @@ class TermColors:
         for style in styles:
             style_comb += self.color_dict[style]
         return style_comb + text + self.color_dict["END"]
-
+        

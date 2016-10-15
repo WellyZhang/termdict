@@ -78,13 +78,16 @@ class MWDict(BaseDict):
                     ret.append(("attrs", header[1]))
                     
                 if mode == "def":
-                
                     inflections = content.find("span", {"class": "inflections"})
                     if inflections is not None:
                         children = inflections.children
                         inflections = ""
                         for child in children:
-                            inflections += child.text + " "
+                            text = child.text.split()
+                            if "play" in text:
+                                text.remove("play")
+                            text = " ".join(text)
+                            inflections += text + " "
                         ret.append(("inflections", inflections))                
                     
                     content = content.find("div", {"class": 
@@ -92,21 +95,21 @@ class MWDict(BaseDict):
                                 
                     lists = content.findAll("li")
                     
+                    def_list = []
                     for l in lists:
-                        def_list = []
                         for child in l.children:
                             def_list.append(child.text.strip())
-                        ret.append(("def_list", def_list))
+                    ret.append(("defs", def_list))
                                      
-                elif mode == "sdef":                
-                    sdefs = content.find("div", 
-                              {"class": "definition-block def-text"})
-                    sdefs = " ".join(sdefs.text.split())
-                    sdefs = "\n:".join(sdefs.split(":"))[1:]
-                    ret.append(("sdefs", sdefs))
+                elif mode == "sdef":
+                    sdef_list = []                
+                    sdefs = content.findAll("li")
+                    for sdefi in sdefs:
+                        sdef_list.append(sdefi.text.strip())                   
+                    ret.append(("sdefs", sdef_list))
                  
                 elif mode == "eg":
-                    sentences = content.find("li")
+                    sentences = content.findAll("li")
                     eg_list = []
                     for sentence in sentences:
                         eg_list.append(sentence.text.strip())
@@ -131,27 +134,38 @@ class MWDict(BaseDict):
         
     def pprint(self, translation):
         
-        js = json.loads(translation)
-        print js
+        components = json.loads(translation)
         
-'''
-                        if l.has_attr("class"):
-                            verb = l.text.strip()
-                            print verb
-                        else:
-                            definitions = ""
-                            if l is not None:
-                                for df in l.children:
-                                    raw = " ".join(df.text.split()) + "\n"
-                                    spt = re.split("[a-z] : ", raw)
-                                    def_idx = spt[0]
-                                    for i in range(1, len(spt)):
-                                        def_idx += "\n " + chr(i + 96) + " : " + spt[i]
-                                    if len(spt) > 1:
-                                        definitions += def_idx[:-2]
-                                    else:
-                                        definitions += def_idx
-                                print definitions
-                        '''   
+        for component in components:
+            if component[0] == "suggests":
+                print self.tc.colorize("Did you mean:", "blue")
+                for suggest in component[1]:
+                    print "  " + suggest
+            if component[0] == "spelling":
+                print "\n  ",
+                print self.tc.colorize(component[1], "bold", "red")
+            if component[0] == "attrs":
+                print self.tc.colorize(component[1], "green") 
+            if component[0] == "inflections":
+                print self.tc.colorize(component[1], "green")   
+            if component[0] == "sdefs":
+                for sdefi in component[1]:
+                    print self.tc.colorize(sdefi, "yellow")
+            if component[0] == "defs":
+                print self.tc.colorize("Def. ", "yellow", "bold")
+                for defi in component[1]:
+                    print " ",
+                    spt = re.split(" [a-z] :\xa0", defi)
+                    defi_re = spt[0]
+                    if len(spt) > 1:
+                        defi_re += " " + chr(97) + u" :\xa0" + spt[1]
+                        for i in range(2, len(spt)):
+                            defi_re += ("\n    " + chr(i + 96) + 
+                                        u" :\xa0" + spt[i])
+                    print self.tc.colorize(defi_re, "yellow")
+            if component[0] == "egs":
+                print self.tc.colorize("e.g. ", "blue", "bold")
+                for eg in component[1]:
+                    print " ",
+                    print self.tc.colorize(eg, "blue", "underline")
 
-    

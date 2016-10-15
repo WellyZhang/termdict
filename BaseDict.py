@@ -18,7 +18,6 @@ class BaseDict(object):
         dbpath = os.path.join(config.DIR, "termdict_{}.db".format(dbname))
         if os.path.exists(dbpath):
             self.db = sqlite3.connect(dbpath)
-            print "Database connected"
         else:
             os.mkdir(config.DIR)
             self.db = sqlite3.connect(dbpath)
@@ -27,9 +26,8 @@ class BaseDict(object):
                   "content TEXT NOT NULL);"
             self.db.execute(SQL)
             self.db.commit()
-            print "Database created"
         self.dbc = self.db.cursor()
-        self.colorizer = TermColors()
+        self.tc = TermColors()
     
     def translate(self, word):
         
@@ -39,11 +37,10 @@ class BaseDict(object):
             soup = self.get_web(word)
             is_err, content = self.parse_web(soup)
             if not is_err:
-                self.dbc.execute("INSERT INTO dict VALUES (?, ?)", 
-                                 (word, content))
-                print "New record inserted"
+                self.db.execute("INSERT INTO dict VALUES (?, ?)", 
+                                (word, content))
+                self.db.commit()
         else:
-            print "Record fetched"
             content = content[0]
         self.pprint(content)
         
@@ -66,5 +63,4 @@ class BaseDict(object):
     def close(self):
         
         self.db.close()
-        print "Database closed"    
         

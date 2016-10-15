@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 
-
+import os
 import sys
 import config
 from MWDict import MWDict
 from TermColors import TermColors
-
 
 def remove_dups(arg_list):
     
@@ -20,7 +19,7 @@ def remove_dups(arg_list):
 
 def welcome():
     
-    print "\n\n\n"
+    os.system("clear")
     header = "Welcome to TermDict, a Parsing-based Dictionary Framework"
     print tc.colorize(header, "yellow").center(
               config.COLUMNS)
@@ -49,12 +48,12 @@ def main(args):
     
     while True:
         try:
-            print tc.colorize("Search for: ", "blue"), 
+            print tc.colorize("\nSearch for:", "blue"), 
             word = raw_input()
             [d.translate(word.strip()) for d in dicts]
         except KeyboardInterrupt:
             [d.close() for d in dicts]
-            print "Program Exit"
+            print tc.colorize("Program Exit", "red", "bold")
             sys.exit()
                   
 if __name__ == "__main__":
