@@ -1,31 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+import config
 import os
 import requests
 import sqlite3
 from bs4 import BeautifulSoup
+from TermColors import TermColors
+
 
 class BaseDict(object):
     
     def __init__(self, url, dbname):
     
         self.url = url
-        homepath = os.path.expanduser("~")
-        dirpath = os.path.join(homepath, ".termdict")
-        dbpath = os.path.join(dirpath, "termdict_{}.db".format(dbname))
+        dbpath = os.path.join(config.DIR, "termdict_{}.db".format(dbname))
         if os.path.exists(dbpath):
             self.db = sqlite3.connect(dbpath)
-            
+            print "Database connected"
         else:
-            os.mkdir(dirpath)
+            os.mkdir(config.DIR)
             self.db = sqlite3.connect(dbpath)
             SQL = "CREATE TABLE dict" + \
                   "(word TEXT PRIMARY KEY NOT NULL, " + \
                   "content TEXT NOT NULL);"
             self.db.execute(SQL)
             self.db.commit()
+            print "Database created"
         self.dbc = self.db.cursor()
+        self.colorizer = TermColors()
     
     def translate(self, word):
         
@@ -37,6 +41,10 @@ class BaseDict(object):
             if not is_err:
                 self.dbc.execute("INSERT INTO dict VALUES (?, ?)", 
                                  (word, content))
+                print "New record inserted"
+        else:
+            print "Record fetched"
+            content = content[0]
         self.pprint(content)
         
     def get_web(self, word):
@@ -50,7 +58,7 @@ class BaseDict(object):
         # elaborated in the subclasses         
         pass
         
-    def pprint(self, spell, structure):
+    def pprint(self, structure):
         
         # elaborated in the subclasses
         pass
@@ -58,3 +66,5 @@ class BaseDict(object):
     def close(self):
         
         self.db.close()
+        print "Database closed"    
+        

@@ -131,8 +131,9 @@ class MWDict(BaseDict):
         
     def pprint(self, translation):
         
-        print "==="
-        print translation
+        js = json.loads(translation)
+        print js
+        
 '''
                         if l.has_attr("class"):
                             verb = l.text.strip()
