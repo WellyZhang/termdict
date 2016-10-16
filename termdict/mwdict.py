@@ -6,6 +6,12 @@ import re
 from basedict import BaseDict
 
 class MWDict(BaseDict):
+
+    """
+    class: WMDict
+        A subclass that inherits from BaseDict; implements technical details 
+        for the Merriam-Webster web look-up parsing process.
+    """
     
     def __init__(self):
     
@@ -17,12 +23,30 @@ class MWDict(BaseDict):
         
         def has_word_header(inner_box):
             
+            """
+            Method: has_word_header
+                check if the wrapper has a word header
+            Params:
+                inner-box
+                  :: BeautifulSoup instance
+                  :: the inner-box-wrapper in the web
+            """ 
+            
             if inner_box.find("div", {"class": "word-header"}) is not None:
                 return True
             else:
                 return False
         
         def mode_checker(inner_box):
+        
+            """
+            Method: mode_checker
+                examine the mode of the inner-box-wrapper
+            Params:
+                inner-box
+                  :: BeautifulSoup instance
+                  :: the inner-box-wrapper in the web
+            """
             
             msg = inner_box.find("div", {"class": "card-primary-content"})
             has_wd = None
@@ -55,6 +79,18 @@ class MWDict(BaseDict):
         
         def header_handler(content, main=False):
         
+            """
+            Method: header_handler
+                extract word information in the header box
+            Params:
+                content
+                  :: BeautifulSoup instance
+                  :: the inner-box-wrapper in the web
+                main
+                  :: bool
+                  :: if the content is the first inner-box-wrapper
+            """
+        
             spell = content.find("div", {"class": "word-header"})
             if main:
                 spell = spell.h1.text.strip()
@@ -67,6 +103,31 @@ class MWDict(BaseDict):
             return spell, attrs
          
         def content_handler(content, has_wd, mode, ret, main=False):
+        
+            """
+            Method: content_handler
+                extract word information in the wrapper box
+            Params:
+                content
+                  :: BeautifulSoup instance
+                  :: the inner-box-wrapper in the web
+                has_wd
+                  :: bool
+                  :: if the box has a word header
+                mode
+                  :: str
+                  :: the mode of the inner box
+                ret
+                  :: list
+                  :: the returning structure; should be a list of tuples where
+                     each tuple contains type and its contents
+                     e.g. 
+                       [("suggets", ["hello", "hull", "hell"]),
+                        ("defs", ["ABC", "DEF", "GHI"])]
+                main
+                  :: bool
+                  :: if the box is the first inner-box-wrapper
+            """
             
             if mode == "err_sug":
                 suggests = content.findAll("a")
@@ -90,6 +151,7 @@ class MWDict(BaseDict):
                         inflections = ""
                         for child in children:
                             text = child.text.split()
+                            # remove the "play" button
                             if "play" in text:
                                 text.remove("play")
                             text = " ".join(text)
@@ -128,6 +190,7 @@ class MWDict(BaseDict):
                 
         header = contents[0]        
         has_wd, mode = mode_checker(header)
+        # error occurs on the first mode check
         if mode.startswith("err_"):
             is_err = True
         content_handler(header, has_wd, mode, ret, True)
@@ -136,12 +199,15 @@ class MWDict(BaseDict):
             has_wd, mode = mode_checker(content)
             content_handler(content, has_wd, mode, ret)
 
+        # return a json-encoded string to be stored in the database
+        
         return is_err, json.dumps(ret)
         
     def pprint(self, translation):
         
         components = json.loads(translation)
         
+        # pretty-print based on the type of the component
         for component in components:
             if component[0] == "suggests":
                 print self.tc.colorize("Did you mean:", "blue")
@@ -161,6 +227,7 @@ class MWDict(BaseDict):
                     print self.tc.colorize(sdefi, "yellow")
             if component[0] == "defs":
                 print self.tc.colorize("Def. ", "yellow", "bold")
+                # structuring the output of definitions to be printed
                 for defi in component[1]:
                     print " ",
                     spt = re.split(" [a-z] :\xa0", defi)

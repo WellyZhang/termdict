@@ -9,6 +9,15 @@ from termcolors import TermColors
 
 def remove_dups(arg_list):
     
+    """
+    Method: remove_dups
+        remove duplicates in a list
+    Params:
+        arg_list
+          :: list
+          :: the list to be processed
+    """
+    
     no_dups = []
     for arg in arg_list:
         if arg not in no_dups:
@@ -18,6 +27,11 @@ def remove_dups(arg_list):
     
 
 def welcome():
+    
+    """
+    Method: welcome
+        print welcome information
+    """
     
     os.system("clear")
     header = "Welcome to TermDict, a Parsing-based Dictionary Framework"
@@ -32,6 +46,11 @@ def welcome():
 
 def main():
     
+    """
+    Method: main
+        Program body that loops forever for words to be looked up.
+    """
+    
     global tc
     tc = TermColors()
     
@@ -40,6 +59,7 @@ def main():
     dicts = []
     args = remove_dups(args)
     for arg in args:
+        # load dictionaries
         if arg.lower() == "mw":
             dicts.append(MWDict())
             print tc.colorize("Loading Merriam-Webster ... Done!", "red")

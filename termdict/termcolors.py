@@ -4,6 +4,12 @@
 
 class TermColors:
 
+    """
+    class :TermColors
+        A helper class for colorizing output.
+    """
+
+    # color table
     color_dict = {
                   "purple": '\033[95m',
                   "blue": '\033[94m',
@@ -16,7 +22,19 @@ class TermColors:
                  }
             
     def colorize(self, text, *styles):
-        
+    
+        """
+        Method: colorize
+            wrapper for colorful output
+        Params:
+            text
+              :: str
+              :: text to be printed
+            styles
+              :: str
+              :: style token
+        """
+                
         style_comb = ""
         for style in styles:
             style_comb += self.color_dict[style]
