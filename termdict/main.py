@@ -30,9 +30,13 @@ def welcome():
     print tc.colorize("========================", "yellow").center(
               config.COLUMNS)
 
-def main(args):
+def main():
+    
+    global tc
+    tc = TermColors()
     
     welcome()
+    args = sys.argv[1:]
     dicts = []
     args = remove_dups(args)
     for arg in args:
@@ -57,8 +61,6 @@ def main(args):
             sys.exit()
                   
 if __name__ == "__main__":
-    
-    global tc
-    tc = TermColors()
-    main(sys.argv[1:])    
+
+    main()    
     

@@ -43,7 +43,8 @@ class MWDict(BaseDict):
                     
                 if h2.startswith("Definition") or \
                     h2.startswith("Full Definition") or \
-                    h2.startswith("Medical Definition"):
+                    h2.startswith("Medical Definition") or \
+                    h2.startswith("Legal Definition"):
                     mode = "def"
                 elif h2.startswith("Simple Definition"):
                     mode = "sdef"
