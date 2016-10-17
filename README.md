@@ -35,6 +35,8 @@ To add support for other web dictionaries,
 3. Write the dictionary loading code in main.py. 
 
 # References
+
 \[1\] Flowerowl. [ici](https://github.com/Flowerowl/ici)
+
 \[2\] longcw. [youdao](https://github.com/longcw/youdao)
 
