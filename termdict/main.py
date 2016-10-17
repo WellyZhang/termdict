@@ -60,6 +60,7 @@ def main():
     args = remove_dups(args)
     for arg in args:
         # load dictionaries
+        # add other dictionaries here
         if arg.lower() == "mw":
             dicts.append(MWDict())
             print tc.colorize("Loading Merriam-Webster ... Done!", "red")
