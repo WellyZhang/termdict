@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-class TermColors:
+class TermColors(object):
 
     """
     class :TermColors

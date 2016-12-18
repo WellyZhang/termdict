@@ -37,7 +37,7 @@ class MWDict(BaseDict):
             else:
                 return False
         
-        def mode_checker(inner_box):
+        def mode_checker(inner_box, start=False):
         
             """
             Method: mode_checker
@@ -62,6 +62,8 @@ class MWDict(BaseDict):
                 if has_wd:
                     h2 = inner_box.find("div", {"class": "word-sub-header"})
                     h2 = h2.text.strip()
+                    if start:
+                        mode = "hdef"
                 else:
                     h2 = inner_box.h2.text.strip()
                     
@@ -158,15 +160,22 @@ class MWDict(BaseDict):
                             inflections += text + " "
                         ret.append(("inflections", inflections))                
                     
-                    content = content.find("div", {"class": 
+                    ct = content.find("div", {"class": 
                                 "card-primary-content"})
-                                
-                    lists = content.findAll("li")
                     
                     def_list = []
-                    for l in lists:
-                        for child in l.children:
-                            def_list.append(child.text.strip())
+
+                    if ct:
+                        lists = ct.findAll("li")
+                        
+                        for l in lists:
+                            for child in l.children:
+                                def_list.append(child.text.strip())
+                    else:
+                        lists = content.find("div", {"class":
+                                    "definition-block def-text"}).findAll("li")
+                        for l in lists:
+                            def_list.append(l.text.strip())
                     ret.append(("defs", def_list))
                                      
                 elif mode == "sdef":
@@ -189,9 +198,9 @@ class MWDict(BaseDict):
         contents = soup.findAll("div", {"class": "inner-box-wrapper"})
                 
         header = contents[0]        
-        has_wd, mode = mode_checker(header)
+        has_wd, mode = mode_checker(header, start=True)
         # error occurs on the first mode check
-        if mode.startswith("err_"):
+        if mode and mode.startswith("err_"):
             is_err = True
         content_handler(header, has_wd, mode, ret, True)
         

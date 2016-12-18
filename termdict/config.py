@@ -15,4 +15,4 @@ DIR = os.path.join(HOME, ".termdict")
 ROWS, COLUMNS = map(lambda x: int(x), os.popen('stty size', 'r').read().split())
 
 # version number
-VERSION = "0.1.2"
+VERSION = "0.1.3"
